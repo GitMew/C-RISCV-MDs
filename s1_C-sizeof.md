@@ -19,13 +19,13 @@ Four observations can be made w.r.t. C's in-built function `sizeof()`:
 ## On array declaration syntax
     
 In Java, we declare (and initialise) arrays as
-```
+```Java
 int[s] my_array = {...}
 ```
 to be read as "create a reference to the integer array object of size `s` called `my_array` with values `...`". 
 
 In C, we declare
-```
+```C
 int my_array[s] = {...}
 ```
 to be read as "create a reference to an integer `my_array` in memory, and now that you're at it, reserve `s` of those locations starting there, with values `...`".
