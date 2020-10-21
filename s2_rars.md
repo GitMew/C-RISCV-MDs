@@ -54,7 +54,7 @@ nomorefun:  # x10 holds the given string's length, x11 holds whether that length
 
 - The most popular assembler directives for control include: 
 
-| Directive | Meaning |
+| AsmDirective | Meaning |
 | --------- | ------- |
 | `.data` | Put the following into the memory's data segment (see below for syntaces). |
 | `.text` | Put the following into the memory's text segment. |
@@ -62,7 +62,7 @@ nomorefun:  # x10 holds the given string's length, x11 holds whether that length
 
 - For `.data` specifically, useful declarations are:
 
-| Directive | Example usage | Meaning |
+| AsmDirective | Example usage | Meaning |
 | --- | --- | --- |
 | `.space` | `s: .space 4` | Reserve 4 bytes of space in memory (further data cannot overwrite this) |
 | `.string` | `mystr: .string "abcd"`| Reserve and fill words in memory to store char bytes and ending byte `\0` |
