@@ -1,6 +1,4 @@
-# CASS Notes --- C Programming --- Ex. 2
-
-## On `sizeof()`
+# CASS Notes --- C Programming --- `sizeof()`
 
 Four observations can be made w.r.t. C's in-built function `sizeof()`:
 1. `sizeof()` is merely a compile-time trick. 
@@ -15,29 +13,3 @@ Four observations can be made w.r.t. C's in-built function `sizeof()`:
 4. `sizeof()` not only doesn't use the value of its argument, but it doesn't even resolve its argument.
     This not only means we can specify `a[0]` for an empty array, but `a[13]` for a 10-element array would work just fine.
     
-    
-## On array declaration syntax
-    
-In Java, we declare (and initialise) arrays as
-```Java
-int[s] my_array = {...}
-```
-to be read as "create a reference to the integer array object of size `s` called `my_array` with values `...`". 
-
-In C, we declare
-```C
-int my_array[s] = {...}
-```
-to be read as "create a reference to an integer `my_array` in memory, and now that you're at it, reserve `s` of those locations starting there, with values `...`".
-
-
-## On arrays as return types for functions
-
-In Java, `int[] myFunction(){...}` is everyday business. Alas, C simply does not allow to directly return arrays as return values for functions. Here are three arguments as to why:
-1. The function would have to specify the size of the array it'd return, which it cannot do dynamically.
-
-2. Arrays are created in the procedure's stack frame; when the procedure returns, the freshly created array virtually disappears (it might still exist under the stack pointer.
-
-3. Arrays are, arguably, abstract data types. They don't jive with low-level programming, which focuses on as little abstraction as possible without writing straight-up assembly.
-
-In-place functions (e.g. `void multArray(int arr[]){...}` would of course work.

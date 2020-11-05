@@ -94,9 +94,9 @@ nomorefun:  # x10 holds the given string's length, x11 holds whether that length
 | --- | --- | --- |
 | `zero` | `x0` | `x0` is hardwired to the value `0` |
 | `ra` | `x1` | return address (link register) |
-| `sp` | `x2` | stack pointer |
-| `gp` | `x3` | stack pointer |
-| `tp` | `x4` | stack pointer |
+| `sp` | `x2` | stack pointer - see S3 |
+| `gp` | `x3` | global pointer - see S4 |
+| `tp` | `x4` | thread pointer |
 | `t0-t2` & `t3-t6` | `x5-x7` & `x28-x31` | temporaries |
 | `s0-s1` & `s2-s11` | `x8-x9` & `x18-x27` | saved |
 | `a0-a7` | `x10-x17` | arguments and return values |

@@ -1,4 +1,4 @@
-# CASS Notes --- RISC-V Programming --- Stack Use
+# CASS Notes --- RISC-V Programming --- Stack Use and Word Alignment
 
 ## Stack Mechanics
 - The stack is a variable-size space in memory that starts at the *top* of the program memory. Indeed, it must therefore grow **downwards**, even though data still grow upwards when stored "onto" (i.e. hung from the tail of) the stack.
