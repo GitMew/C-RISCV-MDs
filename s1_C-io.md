@@ -5,13 +5,13 @@
 
 - Whilst you can leave it be `void main() {}`, you probably want to allow arguments. There is a standard way, which accepts command-line arguments:
 
-    - Input: `int argc` (argument count) and `char argv[]` (argument values)
+    - Input: `int argc` (argument count) and `char* argv[]` (argument values, i.e. an array of strings)
 
     - Output: return `0` (success) or `-1` (failure)
 
 - Conventional MWE:
 ```c
-int main(int argc, char argv[]) {
+int main(int argc, char* argv[]) {
     return 0;
 }
 ```
