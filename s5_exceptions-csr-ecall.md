@@ -1,4 +1,4 @@
-# CASS Notes --- RISC-V Programming --- Exceptions & RARS System Calls
+# CASS Notes --- RISC-V Programming --- Exception Handling & RARS System Calls
 
 ## Privilege Modes
 - For security and virtualisation reasons, RISC-V processors can run in different modes of privilege. Some instructions are reserved for higher degrees of privilege, and if in the wrong mode, the processor will *trap* instruction execution and forward control of the situation to the OS.
