@@ -1,9 +1,11 @@
-# Cass Notes --- RISC-V Programming --- Pointers to Pointers
+# CASS Notes --- C & RISC-V Programming --- Pointers to Pointers
 
 There's a special use-case for pointer usage I want to highlight. This was actually the way I first came into contact with pointers, and came to know their usefulness.
 
 ## Pointers to pointers in C
-At one point in time, some other students and I were building an Arduino robot for shooting ping pong balls. To time shots and to blink LEDs, global timer variables stored the time since the last relevant event (e.g. when the last shot was made), so that, using the system clock, we could check whether enough milliseconds had passed for the next event to take place. For e.g. three LEDs (red, green and blue), the code could have looked like:
+At one point in time, some other students and I were building an Arduino robot for shooting ping pong balls. To time shots and to blink LEDs, global timer variables stored the time since the last relevant event (e.g. when the last shot was made), so that, using the system clock (the `millis()` builtin), we could check whether enough milliseconds had passed for the next event to take place.
+
+For e.g. three LEDs (red, green and blue), the code could have looked like:
 ```c
 #define TIMER_THRESH_MS_RED   = 1000
 #define TIMER_THRESH_MS_GREEN = 2000
@@ -57,23 +59,23 @@ bool delayProtocol(unsigned long* timer_ms_variable, int delay_ms) {
     return false;
 }
 ```
-Now we can "pass a variable" using a call like `checkAndUpdateTimer(&timer_ms_red, TIMER_THRESH_MS_RED)`, `checkAndUpdateTimer(&timer_ms_green, TIMER_THRESH_MS_GREEN)`, and `checkAndUpdateTimer(&timer_ms_blue, TIMER_THRESH_MS_BLUE)` (notice the ampersands). This works; we essentially have a machine that's able to switch between variables it needs to reassign (using the first parameter, which is a pointer).
+Now we can "pass a variable" using a call like `checkAndUpdateTimer(&timer_ms_red, TIMER_THRESH_MS_RED)`, `checkAndUpdateTimer(&timer_ms_green, TIMER_THRESH_MS_GREEN)`, and `checkAndUpdateTimer(&timer_ms_blue, TIMER_THRESH_MS_BLUE)` (notice the ampersands). This works; we essentially have a machine that, via a pointer, is able to switch between the external variable it modifies (which itself is akin to a pointer).
 
 Make no mistake, Java programmers: although you're working with references all the time in Java (allowing you to change an object's state remotely), you're **not** passing *the reference to the variable storing the reference to your object*. Java would hence have the same problem we had at first (although in Java, you would deal with timers differently and not have the problem at all).
 
 ## Pointers to pointers in RISC-V assembly
-In assembly, you're used to throwing around addresses all day long. If an array starts at the address in register `x5`, then walking through it is as easy as updating the value we have using `addi x5, x5, +4`. Simple address math.
+In assembly, you're used to throwing around addresses all day long. If an array starts at the address in register `x5`, then walking through it is as easy as updating the value we have by using `addi x5, x5, +4`. Simple address math.
 
 What you aren't used to, however, is accessing *addresses of addresses of things* (where the "things" could be made up of more addresses). Let's say your boss tells you to program a linked list, and for it, you were writing a procedure `prepend` (i.e. you add an element to the front of the list, meaning you'll at least need the address of the first [value, pointer] pair in memory). However, **your boss tells you that it has to execute in-place**. That means you don't get to return the new address of the [value, pointer] pair you created in memory. How will you ever communicate to the caller the new starting address of the list, then?
 
 The answer is that there must be a place in memory already where the caller of `prepend` expects the new address of the first element to appear. That means that, not only do you need the address of the first element of the list, but you actually need *the address of that address of the first element in the list*, so that you can *change* where the caller will go look for the first element of the list later on.
 
-Hence, the first argument to `prepend` is not:
+Hence, the first argument `x10` to `prepend` would not link like:
 ```
 x10 = &firstElement -> heap@0x0 = firstElement
 ```
-and instead, it is:
+and instead, it'd link in the following fashion:
 ```
 x10 = &(&firstElement) -> heap@0x0 = &firstElement -> heap@0x1 = firstElement
 ```
-Of course, because it's a linked list, to get to secondElement, you would look a couple bytes to the right of `firstElement` to find the address to `secondElement`. Indeed, we have three kinds of addresses to handle, and it makes your brain explode.
+Of course, because it's a linked list, to get to `secondElement`, you would look a couple bytes to the right of `firstElement` to find the address to `secondElement`, to then follow it to get to `secondElement` that way. Indeed, we have three kinds of addresses to handle, and it makes your brain explode.
