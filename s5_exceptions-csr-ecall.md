@@ -27,7 +27,7 @@
     - For CSR access, special CSR instructions are implemented in hardware (see next sections).
 - Each privilege mode has its own set of CSRs, prefixed by the first letter of the mode (`m` for machine, `s` for supervisor/system, `u` for user). They are as follows:
 
-    | CSR (`x=m|s|u`) | Full name           | Usage |
+    | CSR (`x=m/s/u`) | Full name           | Usage |
     | ---       | ---                       | --- |
     | `xstatus` | Status                    | Various status bits informing about the CPU state |
     | `xcause`  | Cause                     | Cause code of exception |
