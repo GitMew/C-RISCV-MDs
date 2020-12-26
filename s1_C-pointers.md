@@ -2,7 +2,7 @@
 
 ## Pointers
 - As a warm-up, consider the following peculiarity: all numbers have a size and a value. Strangely, those don't have to match: a number's value can indicate the size of another number.
-    - E.g.: the number `111` in binary has a size of 3 and a value of 7. It represents, for example, the size of `1000101`, but not its own size.
+    - E.g.: the number `111` in binary has a size of 3 and a value of 7. It represents, for example, the size of `1000101` (in bits), but not its own size.
 - Similarly, each piece of data stored in memory has an address and a value. A value can represent the address to another value, even if it's not its own address. We call a value which has as its meaning the address of another value, a *pointer* or *reference*.
     - Practically, pointers are always integers, because addresses are. However, use of pointers is so common that they have their own C types, which have some special functionality as we will see.
     - Again, remember: pointers are just data of which the values have a special meaning. They, like other data, have an address themselves: indeed, a pointer pointing to a pointer exists.
@@ -29,10 +29,10 @@ printf(  "Value (p): %d\n",  p);
 printf( "Value (*p): %d\n", *p);  // The * operator means "dereference", or "expand" or "access". It retrieves the value a pointer points to.
 printf(       "Size: %d\n", sizeof(int*));
 ```
-- Mnemonic for pointer operators: **a**mpersan**d** returns **ad**dress, **a**steris**k** returns **ac**cess.
+- Mnemonic for pointer operators: _**a**mpersan**d** returns **ad**dress, **a**steris**k** returns **ac**cess._
 
-- A few notes on the `*` operator:
-    - It is not to be confused with the star in pointer types.
+- A few notes on that dereference operator `*`:
+    - It is not to be confused with the star in the pointer type declaration (e.g. `int*`).
     - It is unique to pointers. You can't dereference a non-pointer variable; theoretically, you could treat any variable's value as an address and dereference that, but the compiler says that's a very bad idea.
     - It actually does more than retrieve a value. Retrieving a value is what a function call does, e.g. `retrieveValue(pointy_thing)`. But **a dereference is not a function call**. The correct way to look at it, is that it **diverts memory access** of the pointer's own value to access of the value the pointer points at, for **both reads and writes**. It's as if the pointer dodges the access, and sacrifices the pointee instead. Indeed, the following code prints the same value twice:
         ```c
@@ -45,7 +45,7 @@ printf(       "Size: %d\n", sizeof(int*));
         printf("n plus sixty-nine: %d\n", *p + 69);
 
         // Dereferenced write:
-        *p = 420 + 69
+        *p = 420 + 69;
         printf("n right now: %d\n", n);
         ```
     - Secretly, all variables are dereferenced pointers.
@@ -61,13 +61,13 @@ printf(       "Size: %d\n", sizeof(int*));
     
 - In Java, we declare (and initialise) arrays as
     ```Java
-    int[s] my_array = {...}
+    int[s] my_array = {...};
     ```
     to be read as "create a reference to the integer array object of size `s` called `my_array` with values `...`". 
 
 - In C, we declare
     ```C
-    int my_array[s] = {...}
+    int my_array[s] = {...};
     ```
     to be read as "create a reference to an integer `my_array` in memory, and now that you're at it, reserve `s` of those locations starting there, with values `...`".
 
@@ -82,7 +82,7 @@ In Java, `int[] myFunction(){...}` is everyday business. Alas, C simply does not
 
 3. Arrays are, arguably, abstract data types. They don't jive with low-level programming, which focuses on as little abstraction as possible without writing straight-up assembly.
 
-In-place functions (e.g. `void multArray(int arr[]){...}` would of course work.
+In-place functions (e.g. `void multArray(int arr[]) {...}` would of course work.
 
 ## Strings
 - Just like arrays kind of look like pointers -- but not quite -- strings kind of look like arrays -- but not quite.
@@ -93,7 +93,7 @@ strcpy(my_str2, "abcd");  // "String copy"
 ```
 
 ## Structs
-- Imagine the following: you want to consistently group the same amount of values in memory, but they don't all have the same type, so an array doesn't work to keep them together. A `struct` is your friend!
+- Imagine the following: you want to consistently group (serialise) some values in memory as if belonging together, but they don't all have the same type, so an array doesn't work to keep them next to each other. A `struct` is your friend!
 ```c
 struct MyVeryFirstStructure {
     float   f;
@@ -103,6 +103,11 @@ struct MyVeryFirstStructure {
     char    c;
 };
 
-struct MyVeryFirstStructure s1;  // Nothing initialised, but struct is now declared, and its fields can be assigned
-s1.float = 0.0f
+// First, there is object style:
+struct MyVeryFirstStructure s1;  // Nothing initialised, but struct is now declared in memory as 25 empty bytes, assignable through its fields.
+s1.f = 4.20f;                    // The left-hand side is dot notation.
+
+// Second, there is also pointer style:
+struct MySecondStructure* s2;
+s2->f = 4.20f;                   // The left-hand side is arrow notation. It is syntactically equivalent to (*s2).f but with fewer parentheses.
 ```
