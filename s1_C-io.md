@@ -1,9 +1,14 @@
 # CASS Notes --- C Programming --- I/O
 
-## I/O conventions for `main`
-- The `main` function is used as an entry-point (i.e. where we start execution) when the C program is run after compilation.
+Welcome to my notes! In this first document, we'll take a look at how to input and output data using C, because in further MDs, code snippets might leave out the overhead to actually compile the code. I/O is also 
 
-- Whilst you can leave it be `void main() {}`, you probably want to allow arguments. There is a standard way, which accepts command-line arguments:
+To understand the notes, you'll need some basic knowledge on C or some language that approximates its syntax. I'm only here for the peculiarities you might not be able to figure out yourself.
+
+## The `main` function and I/O conventions
+- The function with identifier `main` is used as an entry-point (i.e. where the computer starts execution) when the C program is run after compilation.
+    - No `void main(...) {...}`, no program execution!
+
+- Whilst you can leave it looking like `void main() {}`, you probably want to allow arguments. There is a standard way, which accepts command-line arguments:
 
     - Input: `int argc` (argument count) and `char* argv[]` (argument values, i.e. an array of strings)
 
