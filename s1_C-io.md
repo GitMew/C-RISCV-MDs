@@ -1,6 +1,6 @@
 # CASS Notes --- C Programming --- I/O
 
-Welcome to my notes! In this first document, we'll take a look at how to input and output data using C, because in further MDs, code snippets might leave out the overhead to actually compile the code. I/O is also 
+Welcome to my notes! In this first document, we'll take a look at how to input and output data using C, because in further MDs, code snippets might leave out the overhead to actually compile the code, or be missing feedback to check program results.
 
 To understand the notes, you'll need some basic knowledge on C or some language that approximates its syntax. I'm only here for the peculiarities you might not be able to figure out yourself.
 
