@@ -20,7 +20,7 @@
 ### Creating, assembling and running a RISC-V program
 - Once you click on the blank paper icon (*New File*) in the toolbar up above, you'll find an empty `*.asm` file in the text editor under *Edit*.
 
-- After having written some assembly, save the file, and click the wrench-screwdriver icon (*Assemble*). The editor now jumps to the *Execute* tab, where the instructions have been loaded into the *Text Segment*, any data in the *Data Segment* (see next section). The first instruction is highlighted.
+- After having written some assembly, save the file, and click the wrench-screwdriver icon (*Assemble*). The editor now jumps to the *Execute* tab, where the instructions have been loaded into the *Text Segment*, and any data in the *Data Segment* (see next section). The first instruction is highlighted.
 
 - Using the toolbar's rightmost set of buttons, you can run the full program, or go through it step-by-step in forwards or backwards direction. During execution (and afterwards), the *Text Segment* tab will continuously highlight the instruction about to be executed, and the *Data Segment* and *Registers* tabs will have values updated according to data manipulations done by the program.
 
@@ -33,23 +33,24 @@
 .data
     mystr:  .string  "kiekeboe"  # Reserve and fill words in memory to store char bytes and ending byte \0
     n:      .word    25
-.globl main         # Make sure the program doesn't start at .data
+.globl main  # Make sure the program doesn't start at .data
 .text
-main:
-    la 	x10, mystr  # Load string's address into memory (literally: the address to label "mystr")
-    lw  x11, n      # Load simple word into memory
-    jalr x1, fun
 fun:
-    mv	    x5,  x10      # Move argument to x5
-    addi	x10, x0,  -1  # counter = -1
+    mv   x5,  x10       # Move argument to x5
+    addi x10, x0,  -1   # counter = -1
     start:
-        addi	x10, x10, 1      # counter += 1
-        addi	x7,  x5,  x10    # address = base + counter (no counter*8, since chars are bytes)
-        lb	    x7,  0(x7)       # char = *address
-        bne 	x7,  x0,  start  # if (char != \0): loop back
+        addi    x10, x10, 1      # counter += 1
+        addi    x7,  x5,  x10    # address = base + counter (no counter*8, since chars are bytes)
+        lb      x7,  0(x7)       # char = *address
+        bne     x7,  x0,  start  # if (char != \0): loop back
     end:
-    slt     x11, x10, x11        # x11 = 1 if the string length is strictly smaller than the word, else 0
-nomorefun:  # x10 holds the given string's length, x11 holds whether that length is smaller than the given word
+    slt  x11, x10, x11  # x11 = 1 if the string length is strictly smaller than the word, else 0
+    jalr x0,  0(x1)     # x10 holds the given string's length, x11 holds whether that length is smaller than the given word
+
+main:
+    la 	 x10, mystr  # Load string's address into memory (literally: the address to label "mystr")
+    lw   x11, n      # Load simple word into memory
+    jalr x1,  fun
 ```
 
 - The most popular assembler directives for control include: 
@@ -72,8 +73,8 @@ nomorefun:  # x10 holds the given string's length, x11 holds whether that length
 | `.double` | `darr: .double 399.99, 42.1`| Store consecutive double-precision floating point numbers in memory (an "array") |
 
 
-- Note: RARS simulates the `rv32i` architecture, not 32-bit. That means we don't use `ld` and `sd`, but rather `lw` and `sw`. This explains why we use `.word` to instantiate data i.o. `.dword`. 
-    - There is support for 64-bit floating point registers.
+- Note: RARS simulates the `rv32i` architecture, not the 64-bit RISC-V discussed in *Patterson & Hennessy*. That means we don't use `ld` and `sd`, but rather `lw` and `sw`. This explains why we use `.word` to instantiate data i.o. `.dword`. 
+    - There *is* support for 64-bit floating point registers.
     - Technically, C programs making use of 64-bit variables (`long long`s) can be compiled in `rv32i`, but each such value will use two registers (where the uppermost register stores the uppermost bits, see next section). In memory, a `.dword` can always be reserved, but by the former, that'll be impractical.
 
 ## 4. Pseudo-expressions
