@@ -12,7 +12,7 @@
         sw   x5, 0(sp)
         ```
 
-    - Common misconception: because HLLs tend to return the value at the end of the stack when calling `pop()`, people think that's the only way to *read* from the stack. This is incorrect: you can "`peek()`" the stack. (Imagine if you couldn't, and you stored an array on the stack!)
+    - Common misconception: because HLLs tend to return the value at the end of the stack when calling `pop()`, people think that's the only way to *read* from the stack. This is incorrect: you can "`peek()`" the stack relative to the stack pointer (e.g. `+4(sp)`). (Imagine if you couldn't, and you stored an array on the stack!)
 
     - The stack pointer points to the last filled byte on the stack. **Never assume any procedure has been courteous enough to leave the stack pointer free for use.** This is illustrated in the memory figure below. (Note: the `0`s and `1`s represent bytes. Also, "*sp*" denotes that that byte's address is stored in `sp`, not that `sp` is stored at the denoted location.)
 
@@ -60,9 +60,11 @@
         sw x5, -16(sp)
         ```
 
-    - By convention, a procedure's *frame pointer* (that is, the value of `sp` at the start of a procedure), if needed, is stored in `s0` (formally: `x8`) at the start of a procedure, after first saving `x8` (since it is a reserved register) to the stack (you can figure out the addressing quirk that brings with it). *You have to do all of this manually.*
+    - When someone saves the value of `sp` at the start of a procedure (probably for later use in that procedure), we call that value "the procedure's *frame pointer*".
+    
+        - RISC-V hardware doesn't do this for you automatically, although there is the convention among programmers to store the frame pointer to `s0` (formally: `x8`), because that's a reserved register and is hence safe from being overwritten by nested procedure calls. Of course, exactly because `s0`/`x8` is a reserved register, you'll need to first save whatever value it's already holding to the stack - think for a moment how you'd implement all of this, because there is a quirky Catch-22 you'll need to work around.
         
-        - Frame pointers can be of help for the following: some complex procedures need to dynamically add more space to the stack. This poses an annoying problem: imagine if we had a value stored at `0(sp)`, and then an extra word was pushed to the stack. Now, our original value should be referred to by `4(sp)`; hence, since the frame pointer is static throughout the same procedure, referring to stack varianbles relative to `x8` is better.
+        - Frame pointers can be of help for the following: some complex procedures need to dynamically add more space to the stack. This poses an annoying problem: imagine if we had a value stored at `0(sp)`, and then an extra word was pushed to the stack. Now, our original value should be referred to by `+4(sp)`; hence, since the frame pointer is static throughout the same procedure, referring to stack varianbles relative to `s0`/`x8` is better: in the example, the original value is at `0(sp)` and then at `+4(sp)` yet always stays at `0(x8)`.
 
 
 ## On the Topic of Word Sizes: C Integers in RV32 vs. RV64
@@ -81,7 +83,7 @@
  	
     That is: in `rv32`, a `long` or an address is 4 bytes (32 bits), whilst in `rv64`, both are 8 bytes (64 bits).
 
-- Since the `rv32` architecture has 32-bit (4-byte) registers, a C `long long` doesn't fit in one. To still host 64-bit variables, return functions etc ... on `rv32`, such a value's bits are split over two consecutive registers. For return values, the split happens as `x11|x10`. (64-bit arguments i.o. return values are split similarly, or spilled to stack.)
+- Since the `rv32` architecture has 32-bit (4-byte) registers, a C `long long` doesn't fit in one. To still host 64-bit variables and values on `rv32`, such a value's bits are split over two consecutive registers. For function return values, the split happens as `x11|x10`. (64-bit function arguments are split similarly, or spilled to stack.)
 
     - Memory is just one long string of bytes, and hence storing a split return value is straight-forward:
         ```python
