@@ -2,12 +2,12 @@
 
 ## Privilege Modes
 - For security and virtualisation reasons, RISC-V processors can run in different modes of privilege. Some instructions are reserved for higher degrees of privilege, and if in the wrong mode, the processor will *trap* instruction execution and forward control of the situation to the OS.
-    - All RISC-V support at least a single mode, being *machine mode*, which is allowed to issue any executable instruction.
+    - All RISC-V processors support at least a single mode, being *machine mode*, which is allowed to issue any executable instruction.
     - Most processors support an additional mode with a slightly lower privilege degree, called *supervisor/system mode*. It cannot, in particular, alter vital processor hardware signals like the enabling of the floating-point unit. This is what we'd want the OS to be in.
     - Experimentally, a third, lower-privileged *user mode* has been suggested by RISC-V's `N` extension. RARS emulates a user-mode environment.
 
 - Exceptions - problems halting execution, as discussed in the next section - are most often handled in supervisor mode, by branching to the OS.
-    - Why not use machine mode, if that has more problem-resolving power? Alas, if an exception cannot handled by the supervisor, it's probably so bad machine mode can't either. This is why machine mode is better dubbed *boot mode*, and supervisor mode *operational mode*, if you will. That's why Patterson & Hennessy only mention supervisor mode.
+    - Why not use machine mode, if that has more problem-resolving power? Alas, if an exception cannot be handled by the supervisor, it's probably so bad machine mode can't either. This is why machine mode is better dubbed *boot mode*, and supervisor mode *operational mode*, if you will. That's why Patterson & Hennessy only mention supervisor mode.
     - An exception is slightly more than a branch, as it raises the privilege level. This in particular makes *system calls* possible (see final section).
 
 
@@ -17,7 +17,7 @@
     - Misaligned load address;
     - Undecodable instruction (e.g. unimplemented opcode);
     - Unprivileged call;
-    - More useful halting, see system calls.
+    - More useful halting, like system calls.
 - RISC-V hardware is equipped for suspending CPU operation to catch exceptions and let them be handled properly, including dedicated registers and instructions.
 
 
@@ -57,8 +57,8 @@
     | `csrwi Csr, Imm` | Write immediate | Write `Csr` from immediate `Imm` |
     - Notice the operand orders. They follow the same rule as the actual CSR instructions: data move from right to left. This differs from `sw`.
 
-- Obviously, since CSRs are not accessible during decode nor writeback, they cannot function as operands/destinations: if an exception handler wants to manipulate values found in any of the CSRs, it'll need to load those into regular registers, which have connections to the ALU.
-    - Sadly for the handler, non-immediate values must be moved to `xscratch` from a regular register, not a CSR. We'll deal with this conundrum in the next section.
+- Obviously, since CSRs are not accessible during decode nor writeback, they cannot function as ALU operands/destinations: if an exception handler wants to manipulate values found in any of the CSRs, it'll need to load those into regular registers, which do have connections to the ALU.
+    - Sadly for the handler, non-immediate values can only be written to `xscratch` *from a regular register*, not a CSR (see above `csrw`). We'll deal with this conundrum in the next section.
 
 
 ### Custom exception handling
@@ -90,7 +90,7 @@
     - but also, it makes the stack unusable to the handler. 
 
 - The solution to the conundrum:
-    - `uscratch` is really only good for storing a non-CSR register
+    - `uscratch` is really only good for storing a non-CSR register.
     - `x10` is the ideal working space: it can be operated on, written to freely (like the address to fixed `.space`), passed as an argument, and used for return values (like the address of `sbrk` to "infinitely more" heap memory).
     - The solution: start the handler with `csrrw x0, uscratch, x10`, end it with `csrrw x10, uscratch, x0` and `uret`.
 
@@ -165,13 +165,13 @@
     3. Execute the special instruction `ecall`.
 - Example program:
     ```python
-    li	    x17, 5   # ReadInt()
+    li      x17, 5   # ReadInt()
     ecall            # x10 = input
 
-    mv 	    x5, x10  # ReadInt()   (note: x17 hasn't changed)
+    mv      x5, x10  # ReadInt()   (note: x17 hasn't changed)
     ecall	         # x10 = input
 
-    add 	x10, x5, x10
+    add     x10, x5, x10
     li  	x17, 1   # PrintInt(x10)
     ecall
 
