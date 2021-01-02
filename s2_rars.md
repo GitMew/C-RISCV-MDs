@@ -1,9 +1,9 @@
 # CASS Notes --- RISC V Programming --- Introduction To The RARS Environment
 
 ## 1. Installation
-- Just download the [latest `.jar` release from GitHub](https://github.com/TheThirdOne/rars/releases). It's open-source, like the rest of the RISC-V paradigm. 
+- Download the [latest `.jar` release from GitHub](https://github.com/TheThirdOne/rars/releases). It's open-source, like the rest of the RISC-V paradigm. Make sure you have Java installed.
 
-- Documentation is [here](https://github.com/TheThirdOne/rars/wiki).
+- Documentation is [here](https://github.com/TheThirdOne/rars/wiki). If you want to get to know the hardware that runs RISC-V assembly, you can check out [Ripes](https://github.com/mortbopet/Ripes/releases), but I will stick to explaining RARS in this MD.
 
 
 ## 2. Environment 101
@@ -79,7 +79,7 @@ nomorefun:  # x10 holds the given string's length, x11 holds whether that length
 ## 4. Pseudo-expressions
 - To start off, labels are written "*my_label:*" as in the data declarations, and are linked to the first non-blank line of assembly code after (or the end of the program if nothing comes after).
 
-- The editor supports all kinds of pseudo-instructions, as those in the following table.
+- The editor supports all kinds of pseudo-instructions, like those in the following table.
 
 | Pseudo-op | Meaning |
 |------|---------|
