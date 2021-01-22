@@ -65,32 +65,35 @@ int main(int argc, char* argv[]) {
     - For both functions, the format string (see e.g. the `"%u"` for `scanf`) *converts* (not *requires*) the input/output. That means that if you enter -1 for a format string `"%u"` in `scanf`, it'll roll around to 4 294 967 295.
 
 
-## `fgets()` and `fputs`
+## `fgets(a,b,s)` and `fputs(a,s)`
 - For even more dynamic I/O, `fgets()` allows for a buffered stream (i.e. standard input, but also text files) read, and `fputs()` allows for a buffered stream write.
     - `fgets` takes a place to write streamed content to (a `char[]` usually), a buffer size to reserve in memory, and a stream to read from.
     - `fputs` takes a place to read content from (a `char[]` or a string literal, usually), and a stream to write to. 
-- When using a file as I/O stream, you open the stream with `file = fopen("name.txt","mode")` and close them with `fclose(file)`.
+- When using a file as I/O stream, you open the stream with `FILE* file = fopen("name.txt","mode")` and close them with `fclose(file)`.
     - The modes match those in Python's `open()` function (`r`, `w`, `w+` ...).
 - Example:
     ```c
     #include <stdio.h>
     #define BUFFER 10 
-
+    
     char bufferout[BUFFER];
+    FILE* file;
+    
+    int main() {
+        // Reading from stdin
+        while (fgets(bufferout, BUFFER, stdin) != NULL) {};
+        printf(bufferout);
 
-    // Reading from stdin
-    while (fgets(bufferout, BUFFER, stdin) != NULL) {};
-    printf(bufferout);
+        // Reading from a file
+        file = fopen("file1.txt", "r");
+        while (fgets(bufferout, BUFFER, file) != NULL) {};
+        printf(bufferout);
+        fclose(file);
 
-    // Reading from a file
-    file = fopen("file.txt", "r");
-    while (fgets(bufferout, BUFFER, file) != NULL) {};
-    printf(bufferout);
-    fclose(file);
-
-    // Writing to a file
-    fp = fopen("file.txt", "w+");
-    fputs("Hello world!", fp);
-    fputs(" This gets concatenated!", fp);
-    fclose(fp);
+        // Writing to a file
+        file = fopen("file2.txt", "w+");
+        fputs("Hello world!", file);
+        fputs(" This gets concatenated!", file);
+        fclose(file);
+    }
     ```
