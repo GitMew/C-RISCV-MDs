@@ -1,15 +1,15 @@
 # CASS Notes --- C & RISC-V Programming --- Pointers to Pointers
 
-There's a special use-case for pointer usage I want to highlight. This was actually the way I first came into contact with pointers, and came to know their usefulness.
+There's a special use-case for pointers I want to highlight. We'll start by the way I actually first came into contact with pointers, and subsequently came to know their usefulness.
 
 ## Pointers to pointers in C
 At one point in time, some other students and I were building an Arduino robot for shooting ping pong balls. To time shots and to blink LEDs, global timer variables stored the time since the last relevant event (e.g. when the last shot was made), so that, using the system clock (the `millis()` builtin), we could check whether enough milliseconds had passed for the next event to take place.
 
 For e.g. three LEDs (red, green and blue), the code could have looked like:
 ```c
-#define TIMER_THRESH_MS_RED   = 1000
-#define TIMER_THRESH_MS_GREEN = 2000
-#define TIMER_THRESH_MS_BLUE  = 3000
+#define TIMER_THRESH_MS_RED   1000
+#define TIMER_THRESH_MS_GREEN 2000
+#define TIMER_THRESH_MS_BLUE  3000
 
 unsigned long timer_ms_red   = 0;
 unsigned long timer_ms_green = 0;
@@ -66,7 +66,7 @@ Make no mistake, Java programmers: although you're working with references all t
 ## Pointers to pointers in RISC-V assembly
 In assembly, you're used to throwing around addresses all day long. If an array starts at the address in register `x5`, then walking through it is as easy as updating the value we have by using `addi x5, x5, +4`. Simple address math.
 
-What you aren't used to, however, is accessing *addresses of addresses of things* (where the "things" could be made up of more addresses). Let's say your boss tells you to program a linked list, and for it, you were writing a procedure `prepend` (i.e. you add an element to the front of the list, meaning you'll at least need the address of the first [value, pointer] pair in memory). However, **your boss tells you that it has to execute in-place**. That means you don't get to return the new address of the [value, pointer] pair you created in memory. How will you ever communicate to the caller the new starting address of the list, then?
+What you aren't used to, however, is accessing *addresses of addresses of things* (where the "things" could be made up of more addresses). Let's say your boss tells you to program a **linked list**, and for it, you were writing a procedure `prepend` (i.e. you add an element to the front of the list, meaning you'll at least need the address of the first [value, pointer] pair in memory). However, **your boss tells you that it has to execute in-place**. That means you don't get to return the new address of the [value, pointer] pair you created in memory. How will you ever communicate to the caller the new starting address of the list, then?
 
 The answer is that there must be a place in memory already where the caller of `prepend` expects the new address of the first element to appear. That means that, not only do you need the address of the first element of the list, but you actually need *the address of that address of the first element in the list*, so that you can *change* where the caller will go look for the first element of the list later on.
 
