@@ -14,7 +14,7 @@
 
     - Common misconception: because HLLs tend to return the value at the end of the stack when calling `pop()`, people think that's the only way to *read* from the stack. This is incorrect: you can "`peek()`" the stack relative to the stack pointer (e.g. `+4(sp)`). (Imagine if you couldn't, and you stored an array on the stack!)
 
-    - The stack pointer points to the last filled byte on the stack. **Never assume any procedure has been courteous enough to leave the stack pointer free for use.** This is illustrated in the memory figure below. (Note: the `0`s and `1`s represent bytes. Also, "*sp*" denotes that that byte's address is stored in `sp`, not that `sp` is stored at the denoted location.)
+    - The stack pointer points to the last filled byte on the stack. **Never assume any procedure has been courteous enough to leave the stack pointer free for use.** This is illustrated in the memory figure below. (Note: the `0`s and `1`s represent bytes. Also, "*sp*" denotes that that byte's address is stored in `sp`, not that `sp` is stored at the denoted location. The arrow signifies whereto a word would continue if stored at the current `sp`.)
 
         |       |       |       |       |
         | ---   | ---   | ---   | ---   |
@@ -22,14 +22,14 @@
         |   1   |   1   |   0   |   0   |
         |   0   |   1   |   1   |   1   |
         |   1   |   1   |   0   |   1   |
-        |   1   |   1   |   1   |   *sp*   |
+        |   1   |   1   |   1   |   *<sp*   |
         |   -   |   -   |   -   |   -   |
         |   -   |   -   |   -   |   -   |
         |   ...   |  ...   |   ...   |   ...   |
 
 - Some good practice w.r.t. the stack:
 
-    - In RISC-V, the stack pointer has an alignment restriction of 2 doublewords (two blocks of 8 bytes). For assembly programming exercises, agreeing to a 1-word (4-byte) alignment restriction instead makes way life easier.
+    - In RISC-V, the stack pointer has an alignment restriction of 2 doublewords (two blocks of 8 bytes). For assembly programming exercises, agreeing to a 1-word (4-byte) alignment restriction instead makes life way easier.
 
     - There are multiple ways of phrasing "lower stack pointer and write data to the new address" as a chain of instructions. However, some ways are better than others. Below are some alternatives for doing exactly this.
 
@@ -42,7 +42,7 @@
         sw x5, 0(sp)
         addi sp, sp, +16  # At the end of a procedure, free the stack space again.
 
-        # 2. This is wasteful use of the ALU (and blocks multi-issuing!), but still correct protocol.
+        # 2. This is wasteful use of the ALU, but still correct protocol. It is also bad from the perspective of multi-issue instruction-level parallelism, since consecutive instructions now use sp *and* modify sp, so they can't be executed simultaneously.
         addi sp, sp, -4
         sw x5, 0(sp)
         addi sp, sp, -4
