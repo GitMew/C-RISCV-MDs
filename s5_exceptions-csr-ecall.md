@@ -1,24 +1,33 @@
 # CASS Notes --- RISC-V Programming --- Exception Handling & RARS System Calls
 
 ## Privilege Modes
-- For security and virtualisation reasons, RISC-V processors can run in different modes of privilege. Some instructions are reserved for higher degrees of privilege, and if in the wrong mode, the processor will *trap* instruction execution and forward control of the situation to the OS.
+- For security and virtualisation reasons, RISC-V processors can run in different modes of privilege. Some instructions are reserved for higher degrees of privilege, and if in the wrong mode, the processor will *trap* instruction execution and forward control of the situation to the OS's trap handler.
     - All RISC-V processors support at least a single mode, being *machine mode*, which is allowed to issue any executable instruction.
-    - Most processors support an additional mode with a slightly lower privilege degree, called *supervisor/system mode*. It cannot, in particular, alter vital processor hardware signals like the enabling of the floating-point unit. This is what we'd want the OS to be in.
-    - Experimentally, a third, lower-privileged *user mode* has been suggested by RISC-V's `N` extension. RARS emulates a user-mode environment.
+    - Most processors support an additional mode with a slightly lower privilege degree, called *supervisor/system mode*. It cannot, in particular, alter vital processor hardware signals like the enabling of the floating-point unit. This mode is what we'd want the OS to be in.
+    - Experimentally, a third, lower-privileged *user mode* has been suggested by RISC-V's `N` extension. RARS emulates a user-mode environment, such that it makes real sense to talk about privileged vs. underprivileged instructions.
 
 - Exceptions - problems halting execution, as discussed in the next section - are most often handled in supervisor mode, by branching to the OS.
     - Why not use machine mode, if that has more problem-resolving power? Alas, if an exception cannot be handled by the supervisor, it's probably so bad machine mode can't either. This is why machine mode is better dubbed *boot mode*, and supervisor mode *operational mode*, if you will. That's why Patterson & Hennessy only mention supervisor mode.
-    - An exception is slightly more than a branch, as it raises the privilege level. This in particular makes *system calls* possible (see final section).
+    - The effect of an exception is, in the best case, slightly more than a branch, as it will raises the privilege level. This in particular makes *system calls* possible (see final section).
 
 
-## Exception ISA
-- Sometimes, regular CPU operation is interrupted by a bad machine event taking place. Examples include:
-    - Misaligned stack pointer;
-    - Misaligned load address;
-    - Undecodable instruction (e.g. unimplemented opcode);
-    - Unprivileged call;
-    - More useful halting, like system calls.
-- RISC-V hardware is equipped for suspending CPU operation to catch exceptions and let them be handled properly, including dedicated registers and instructions.
+## Exception/interrupt ISA
+- Sometimes, regular CPU operation is stopped by a bad machine event taking place (that is, *inside* the CPU), requiring the CPU to jump to a safe address without being asked to do so by a branch or jump instruction. These events are *exceptions*, which we classify into "FAT"s:
+    - **F**aults: unintentional but fixable invalid hardware behaviour. Examples:
+        - Divide by zero;
+        - Page table faults (virtual page address not in page table, so it needs to be fetched from disk);
+        - Undecodable instruction (e.g. unimplemented opcode);
+        - Misaligned stack pointer;
+        - Misaligned load address;
+    - **A**borts: unintentional and unfixable hardware behaviour. Example:
+        - The magic of micro-electronical quirkiness causes single-parity RAM to become corrupted;
+    - **T**raps: intentional halts. Examples:
+        - Unprivileged instructions (see above);
+        - Very explicit calls on an OS service, like *system calls*;
+- Similar to traps, the CPU has pins allowing the *outside* world to raise an *interrupt* to grab the CPU's attention. This can happen asynchronously, so the CPU will wait a while before sending back an acknowledgement of having handled it. Examples include:
+    - Human input via keystrokes or mouse movements;
+    - I/O completion (a hard disk drive, a particularly slow device, returns the result of a data request);
+- RISC-V hardware is equipped for suspending CPU operation to catch exceptions/interrupts and let them be handled properly, including dedicated registers and instructions. This hardware is discussed next.
 
 
 ### CSRs
@@ -46,7 +55,7 @@
     | `csrrs Rd, Csr, Rs` | Read-set   | Read `Csr` into `Rd`, and set `Csr` to `Csr OR Rs` |
     | `csrrw Rd, Csr, Rs` | Read-write | Read `Csr` into `Rd`, and set `Csr` to `Rs` |
     | `csrrc Rd, Csr, Rs` | Read-clear | Read `Csr` into `Rd`, and set `Csr` to `0` |
-    | `mret|sret|uret` | Return from handler | Copy `xepc` into `pc` to resume execution |
+    | `mret/sret/uret` | Return from handler | Copy `xepc` into `pc` to resume execution |
 
 - The RARS assembler offers additional meaningful pseudo-instructions that exploit the `x0` register internally:
 
@@ -67,15 +76,15 @@
     - After that, `utvec` can be set to the address of the first instruction of the exception handler.
     - Example setup:
         ```python
-        csrsi 	uie, 1      # Enable custom interrupts in RARS
-        la	    x5, handler
-        csrw	utvec, x5	# Set User Trap VECtorised handler address
+        csrsi   uie, 1      # Enable custom interrupts in RARS
+        la      x5, handler
+        csrw     utvec, x5  # Set User Trap VECtorised handler address
         ```
 
 - The big conundrum of exception handlers is handler memory allocation. The handler likely wants to compute or retrieve at least one piece of data, or perhaps perform a system call (see next section). Yet, to perform any operation or load or argument pass ... you need a free register.
     - Assuming an exception can occur at any point in time, there is no guarantee that caller-callee conventions have been followed. Hence, all registers we normally assume to be safe to manipulate (`x5`-`x7`, `x10`-`x17` and `x28`-`x31`), **aren't safe**.
     - Furthermore, since stack pointer misalignment may have caused the exception, the stack is **not available** for storing operands to. 
-    - Hence, this leaves two ways to allocate memory for the exception handler:
+    - Hence, this leaves two ways to allocate free memory for the exception handler:
         1. Use the data segment (use `.data` to reserve `.space`) => fixed-size allocation
         2. Use dynamic memory (use an `ecall` to call `sbrk`) => ever-expandable allocation, though not freeable :(
 
@@ -84,7 +93,7 @@
         - Furthermore, even if we wanted to use only one register in space, `uscratch` wouldn't suffice in the important use-case of loading data from informative CSRs (`ucause`, `uepc` ...).
         - Additionally, `uscratch` can't be used for passing arguments, nor arithmetic, nor branching.
 
-- Doomsday scenario: a byte-aligned stack pointer when pushing a link register to the stack.
+- Doomsday scenario: a stack pointer aligned on any byte that doesn't delimit a doubleword, right as we're pushing a link register to the stack at procedure startup.
     - Not only does this cause a trap (`sp` should be doubleword-aligned), 
     - and not only does this make the procedure jump without having backed up its temporaries, 
     - but also, it makes the stack unusable to the handler. 
@@ -94,7 +103,7 @@
     - `x10` is the ideal working space: it can be operated on, written to freely (like the address to fixed `.space`), passed as an argument, and used for return values (like the address of `sbrk` to "infinitely more" heap memory).
     - The solution: start the handler with `csrrw x0, uscratch, x10`, end it with `csrrw x10, uscratch, x0` and `uret`.
 
-- A full exception handler:
+- A full exception handler, using the `.data` method of allocation:
     ```python
     .data
         handler_stash:  .space 4  # Space for spilling a register
@@ -104,7 +113,7 @@
     .text
     handler:
         # 1. Stash one register to uscratch, so we can load in address(es) to our big stash
-        csrr    x10, uscratch
+        csrr    uscratch, x10
         
         # 2. Load address into x10, and stash x17 (x10, neatly, is already stashed)
         la      x10, handler_stash
@@ -114,45 +123,45 @@
         la	    x10, msg_exception1
         li	    x17, 4	# PrintString(x10)
         ecall
-        csrr 	x10, ucause
+        csrr    x10, ucause
         li	    x17, 1  # PrintInt(x10)
         ecall
         la	    x10, msg_exception2
         li	    x17, 4	# PrintString(x10)
         ecall
-        csrr 	x10, uepc
+        csrr    x10, uepc
         li	    x17, 1  # PrintInt(x10)
         ecall
         
         # 4. Jump over line
-        addi 	x10, x10, 4
-        csrw 	uepc, x10
+        addi    x10, x10, 4
+        csrw    uepc, x10
         
         # 5. Restore registers
         la      x10, handler_stash
         lw	    x17, 0(x10)
-        csrr	x10, uscratch
+        csrr    x10, uscratch
 
         # 6. Return
         uret
         
     main:
         # Handler setup (enable custom handler, and set address to it)
-        csrsi 	uie, 1      # Enable custom interrupts in RARS
+        csrsi   uie, 1      # Enable custom interrupts in RARS
         la	    x5, handler
-        csrw	utvec, x5	# Set User Trap VECtorised handler address
+        csrw    utvec, x5	# Set User Trap VECtorised handler address
         
         # Trap
-        lw  	x5, 1       # Always traps (lw only allows word-aligned addresses, and 1 is byte-aligned)
+        lw      x5, 1       # Always traps (lw only allows word-aligned addresses, and 1 is byte-aligned)
 
         # Finish
         li      x17, 10     # Exit(0)
         ecall
     ```
-
+    - Of course, in real-life applications, the user-mode procedure wouldn't be able to reference the OS handler's reserved memory space (or any of the OS's pages, for that matter).
 
 ## System Calls
-- System calls are intentional exceptions. They're evoked by a special instruction (an environment call in RARS), and are used to interface with basic, useful OS functionality. Examples include:
+- System calls are intentional trap exceptions. They're evoked by a special instruction (an environment call in RARS), and are used to interface with basic, useful OS functionality. Examples include:
     - Printing/reading integers, floats, characters, strings ... to/from console
     - Generating a random number
     - Playing a MIDI tone
@@ -172,7 +181,7 @@
     ecall	         # x10 = input
 
     add     x10, x5, x10
-    li  	x17, 1   # PrintInt(x10)
+    li      x17, 1   # PrintInt(x10)
     ecall
 
     li      x17, 10  # Exit(0)
