@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
 | `%u` | unsigned (decimal) int | 
 | `%d` | signed (decimal) int |
 | `%lu` | long unsigned (decimal) int |
-| `%li` | long signed (decimal) int |
+| `%ld` | long signed (decimal) int |
 | `%f` | float |
-| `%lf` | double |
+| `%lf` | double ("long float") |
 | `%o` | signed octal int |
 | `%x` | signed hex int |
 
@@ -48,15 +48,19 @@ int main(int argc, char* argv[]) {
     ```c
     #include <stdio.h>
 
-    unsigned int n;
+    int main() {
+        unsigned int n;
 
-    // I
-    printf("Enter number to take factorial of: ");
-    scanf("%u", &n);
+        // I
+        printf("Enter number to multiply by two: ");
+        scanf("%u", &n);
 
-    // O
-    printf("Your number: %d\n", n);  // Don't forget \n, or you'll have a bad time with printouts sticking together.
-    printf("Your number times two: %ld\n", n * 2);
+        // O
+        printf("Your number: %d\n", n);  // Don't forget \n, or you'll have a bad time with printouts sticking together.
+        printf("Your number times two: %ld\n", n * 2);
+        
+        return 0;
+    }
     ```
     - For both functions, the format string (see e.g. the `"%u"` for `scanf`) *converts* (not *requires*) the input/output. That means that if you enter -1 for a format string `"%u"` in `scanf`, it'll roll around to 4 294 967 295.
 
